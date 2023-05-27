@@ -7,6 +7,7 @@ import { TRoute } from '../types'
 import { handleRequest, TCustomError } from '../../utils/request.utils'
 import { createHash } from '../../utils/hash.utils'
 import { createToken } from '../../utils/jwt.utils'
+import { authorize } from '../../utils/middleware.utils'
 
 const SALT = (process.env.PASSWORD_SALT as string) ?? 'XYZ'
 const SECRET = (process.env.TOKEN_SECRET as string) ?? 'XYZ'
@@ -14,7 +15,11 @@ const SECRET = (process.env.TOKEN_SECRET as string) ?? 'XYZ'
 export default {
     method: 'get',
     path: '/api/login',
-    validators: [body('email').isEmail(), body('password').not().isEmpty()],
+    validators: [
+        authorize,
+        body('email').isEmail(),
+        body('password').not().isEmpty(),
+    ],
     handler: async (req: Request, res: Response) =>
         handleRequest({
             req,
@@ -23,6 +28,7 @@ export default {
             responseFailStatus: StatusCodes.UNAUTHORIZED,
             execute: async () => {
                 const { email, password } = req.body
+                console.log('dupa', req.body)
                 const passwordHash = createHash(password, SALT)
                 const user = await prisma.user.findFirst({ where: { email } })
                 const passwordValid = user

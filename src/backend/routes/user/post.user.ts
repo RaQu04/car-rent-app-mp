@@ -12,7 +12,7 @@ export default {
     method: 'post',
     path: '/api/user',
     validators: [
-        authorize,
+        // authorize,
         body('email').isEmail(),
         body('password').not().isEmpty(),
     ],
@@ -23,15 +23,18 @@ export default {
             responseSuccessStatus: StatusCodes.CREATED,
             messages: { uniqueConstraintFailed: 'Email must be unique.' },
             execute: async () => {
+                console.log(req.body)
                 const { email, name, password } = req.body
                 const passwordHash = createHash(password, SALT)
+                const data = {
+                    id: v4(),
+                    name,
+                    email,
+                    password: passwordHash,
+                }
+                console.log(data)
                 return prisma.user.create({
-                    data: {
-                        id: v4(),
-                        name,
-                        email,
-                        password: passwordHash,
-                    },
+                    data: data,
                 })
             },
         }),
